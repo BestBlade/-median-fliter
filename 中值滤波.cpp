@@ -1,122 +1,77 @@
 /*
-*©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´
-*©¦¡¡Ãè    Êö£º¸ù¾İÔ­Àí±àĞ´³ÌĞò£¬ÊµÏÖÖĞÖµÂË²¨													   ©¦
-*©¦¡¡×÷    Õß£ºÄ²ÖÅèë|BestBlade																	   ©¦
-*©¦¡¡°æ    ±¾£º1.0																			   	   ©¦
-*©¦¡¡´´½¨Ê±¼ä£º2020.07.13																		   ©¦
-*©¸©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¼
+*â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+*â”‚ã€€æ    è¿°ï¼šæ ¹æ®åŸç†ç¼–å†™ç¨‹åºï¼Œå®ç°ä¸­å€¼æ»¤æ³¢													   â”‚
+*â”‚ã€€ä½œ    è€…ï¼šç‰Ÿå³™æ¡¦|BestBlade																	   â”‚
+*â”‚ã€€ç‰ˆ    æœ¬ï¼š2.0																			   	   â”‚
+*â”‚ã€€åˆ›å»ºæ—¶é—´ï¼š2020.10.18																		   â”‚
+*â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 */
 
 #include <iostream>
-#include <opencv2/core/core.hpp>  
-#include <opencv2/highgui/highgui.hpp>  
-#include "opencv2/imgproc/imgproc.hpp"
+#include<opencv2/core/core.hpp>  
+#include<opencv2/highgui/highgui.hpp>  
+#include"opencv2/imgproc/imgproc.hpp"
 #include <stdio.h>
-#include <math.h>
 
 using namespace std;
 using namespace cv;
 
-void median_fliter(Mat &origin_pic, Mat &result_pic, Size ksize)								/*	»Ò¶ÈÍ¼ÏñÖĞÖµÂË²¨	*/
-{
-	result_pic = origin_pic.clone();
-	Mat during_pic = result_pic.clone();
-
-	int row = result_pic.rows;
-	int col = result_pic.cols;
-
-	int krow = ksize.width;
-	int kcol = ksize.height;
-
-	int median = krow * kcol / 2;																/*	¼ÆËãÖĞÖµ£¬ÓÉÓÚÊı×é´Ó0¿ªÊ¼£¬Òò´Ë´Ë´¦²»±Ø-1	*/
-
-	if ((row < krow) && (col < kcol))
-	{
-		cerr << "ERROR:Í¼Æ¬³ß´ç¹ıĞ¡" << endl;													/*	Í¼Æ¬³ß´ç¹ıĞ¡	*/
+Mat median_fliter(Mat img, Size temp) {
+	if (temp.height % 2 == 0 || temp.width % 2 == 0) {
+		cerr << "error template size" << endl;
 	}
-	else
-		if ((krow % 2 == 0) || (kcol % 2 == 0))
-		{
-			cerr << "ERROR:»¬´°¿Ú³ß´ç´íÎó" << endl;												/*	Æ½»¬´°¿Ú³ß´ç´íÎó	*/
-		}
-		else
-		{
-			int row_start = krow / 2;
-			int col_start = kcol / 2;
+	int row_center = temp.height / 2;
+	int col_center = temp.width / 2;
+	int mid = temp.height * temp.width / 2;
 
-			if (origin_pic.channels() == 1)														/*	µ¥Í¨µÀÍ¼Ïñ	*/
-			{
-				for (int i = row_start; i < row - row_start; i++)
-				{
-					for (int j = col_start; j < col - col_start; j++)
-					{
-						int n = { 0 };
-						vector<int> channel(krow * kcol);
+	Mat res(img.rows, img.cols, img.type());
 
-						for (int p = i - row_start; p <= i + row_start; p++)
-						{
-							for (int q = j - col_start; q <= j + col_start; q++)
-							{
-								channel[n++] = during_pic.at<uchar>(p, q);						/*	¼ÇÂ¼ÏñËØ(i,j)ÖÜÎ§Ä£°åµÄÃ¿Ò»¸öÏñËØÖµ	*/
-							}
-						}
-
-						std::sort(channel.begin(), channel.end());								/*	ÅÅĞò	*/		/*	std¿âºÍcv¿â¶¼ÓĞsortº¯Êı£¬Òò´ËÒª×¢Ã÷	*/
-
-						result_pic.at<uchar>(i, j) = channel[median];							/*	½«ÖĞÖµ¸³¸ø½á¹ûÍ¼µÚ(i,j)¸öÏñËØ£¬Íê³ÉÖĞÖµÂË²¨	*/
+	for (int x = row_center; x < img.rows - row_center; x++) {
+		for (int y = col_center; y < img.cols - col_center; y++) {
+			if (res.channels() == 1) {
+				vector<int> val;
+				for (int i = 0; i < temp.height; i++) {
+					for (int j = 0; j < temp.width; j++) {
+						val.push_back(img.at<uchar>(x + i - row_center, y + j - col_center));
 					}
 				}
+				sort(val.begin(), val.end());
+				res.at<uchar>(x, y) = val[mid];
 			}
-			else if (origin_pic.channels() == 3)												/*	¶ÔÓÚÈıÍ¨µÀÍ¼Ïñ	*/
-			{
-				for (int i = row_start; i < row - row_start; i++)
-				{
-					for (int j = col_start; j < col - col_start; j++)
-					{
-						int n = { 0 };
-						vector<int> channel_r(krow * kcol);
-						vector<int> channel_g(krow * kcol);
-						vector<int> channel_b(krow * kcol);
-
-						for (int p = i - row_start; p <= i + row_start; p++)
-						{
-							for (int q = j - col_start; q <= j + col_start; q++)
-							{
-								channel_r[n] = during_pic.at<Vec3b>(p, q)[2];					/*	¼ÇÂ¼ÏñËØ(i,j)ÖÜÎ§Ä£°åµÄÃ¿Ò»¸öÏñËØÖµ	*/
-								channel_g[n] = during_pic.at<Vec3b>(p, q)[1];
-								channel_b[n] = during_pic.at<Vec3b>(p, q)[0];
-								n++;
-							}
-						}
-
-						std::sort(channel_r.begin(), channel_r.end());							/*	ÅÅĞò	*/
-						std::sort(channel_g.begin(), channel_g.end());
-						std::sort(channel_b.begin(), channel_b.end());
-
-						result_pic.at<Vec3b>(i, j)[0] = channel_b[median];						/*	½«ÖĞÖµ¸³¸ø½á¹ûÍ¼µÚ(i,j)¸öÏñËØ£¬Íê³ÉÖĞÖµÂË²¨	*/
-						result_pic.at<Vec3b>(i, j)[1] = channel_g[median];
-						result_pic.at<Vec3b>(i, j)[2] = channel_r[median];
+			else {
+				//ç©ºé—´æ¢æ—¶é—´
+				vector<int> val_r;
+				vector<int> val_g;
+				vector<int> val_b;
+				for (int i = 0; i < temp.height; i++) {
+					for (int j = 0; j < temp.width; j++) {
+						val_r.push_back(img.at<Vec3b>(x + i - row_center, y + j - col_center)[2]);
+						val_g.push_back(img.at<Vec3b>(x + i - row_center, y + j - col_center)[1]);
+						val_b.push_back(img.at<Vec3b>(x + i - row_center, y + j - col_center)[0]);
 					}
 				}
+				sort(val_r.begin(), val_r.end());
+				sort(val_g.begin(), val_g.end());
+				sort(val_b.begin(), val_b.end());
+				res.at<Vec3b>(x, y)[0] = val_b[mid];
+				res.at<Vec3b>(x, y)[1] = val_g[mid];
+				res.at<Vec3b>(x, y)[2] = val_r[mid];
 			}
 		}
-	
+	}
+	return res;
 }
 
 int main()
 {
-	Mat origin_pic = imread("C:/Users/Chrysanthemum/Desktop/2.JPG",-1);						/*	ÈıÍ¨µÀ²âÊÔÍ¼	*/
-	//Mat origin_pic = imread("C:/Users/Chrysanthemum/Desktop/1.jpg", -1);						/*	µ¥Í¨µÀ²âÊÔÍ¼	*/
+	Mat img = imread("2.JPG");
 
-	Mat result_pic;
-	Size ksize(3, 3);
+	Size temp(3, 3);
 
-	cout << "Í¼Æ¬Í¨µÀÊıÎª" << origin_pic.channels() << endl;
+	Mat res = median_fliter(img, temp);
 
-	median_fliter(origin_pic, result_pic, ksize);
-
-	imshow("Ô­Í¼", origin_pic);
-	imshow("5x5Æ½»¬½á¹ûÍ¼", result_pic);
+	imshow("åŸå›¾", img);
+	imshow("5x5å¹³æ»‘ç»“æœå›¾", res);
 
 	waitKey(0);
 
